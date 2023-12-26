@@ -1,12 +1,25 @@
 import Head from "next/head";
-import { SignIn, SignOutButton, useUser, SignInButton } from "@clerk/nextjs";
+import { SignOutButton, useUser, SignInButton } from "@clerk/nextjs";
 
 import { api } from "~/utils/api";
 
 export default function Home() {
   const user = useUser();
 
+  console.log(user);
+
   const { data, isLoading } = api.post.getAll.useQuery();
+
+  const CreatePostWizard = () => {
+    const user = useUser(); // get the current user info
+
+    if (!user) return null; 
+
+    return <div className="flex gap-3 w-full" >
+      <img src={user.user?.imageUrl} alt="user profile image" className="flex w-14 h-14 rounded-full" />
+      <input placeholder="Type some emojis!" className="bg-transparent grow outline-none" />
+    </div>
+  }
 
   if (isLoading) return <div>Loading...</div>;
   if (!data) return <div>Sorry... We have no posts yet</div>;
@@ -20,12 +33,15 @@ export default function Home() {
       </Head>
       <main className="flex justify-center h-screen">
         <div className="w-full h-full md:max-w-2xl border-x border-slate-400" >
-          <div className="border-b border-slate-400 p-4 flex justify-center" >
-            { user? <SignOutButton/> : <SignInButton/> }
+          <div className="border-b border-slate-400 p-4 flex" >
+            { user? <CreatePostWizard/> : <SignInButton/> }
           </div>
           <div className="flex flex-col" >
-            {data?.map((post) => (
-              <div className="border-b border-slate-400 p-8" key={post.id}>{post.content}</div>
+            {data?.map(({ post, author }) => (
+              <div className="flex  gap-3 border-b border-slate-400 p-8" key={post.id}>
+                <img src={author?.imageUrl} alt="user profile image" className="flex w-10 h-10 rounded-full"/> 
+                {post.content}
+              </div>
             ))}
           </div>
         </div>
